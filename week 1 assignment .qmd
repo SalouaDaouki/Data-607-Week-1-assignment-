@@ -1,0 +1,99 @@
+---
+title: "Week 1 Assignment"
+format: html
+editor: visual
+---
+
+# 2022 World Cup Predictions
+
+```{r loading packages}
+library(tidyverse)
+library(ggthemes)
+library(gt)
+library(ggplot2)
+```
+
+## Introduction:
+
+This [**article**](https://fivethirtyeight.com/features/how-our-2022-world-cup-predictions-work/) is about predicting the chances of winning, losing or getting tied of each soccer team that participated in the Qatar World Cup 2022. In addition, this article is showing, in a table, how likely each team will be placed first or second in their groups as well as their chances to move up to the next stage of the competition.
+
+## Reading the dataset
+
+There are two data sets: one is the forecasts and the other one is the matches played.
+
+```{r forcasts data}
+library(readr)
+wc_forecasts <- read_csv("https://raw.githubusercontent.com/SalouaDaouki/Data-607-Week-1-assignment-/main/wc_forecasts.csv")
+glimpse(wc_forecasts)
+```
+
+```{r matches data}
+library(readr)
+wc_matches <- read_csv("https://raw.githubusercontent.com/SalouaDaouki/Data-607-Week-1-assignment-/main/wc_matches.csv")
+glimpse(wc_matches)
+```
+
+## Creating a data frame with subset of columns:
+
+### Forecasts subset
+
+```{r subsetting forecasts}
+wc_forecasts_sub = subset(wc_forecasts, spi>82, select = c(team, group, spi, make_final))
+glimpse(wc_forecasts_sub)
+```
+
+```{r renaming the SPI abbreviation}
+colnames(wc_forecasts_sub)[4] = "make_final" # this line of the code is to undo the mistake I did; I renamed the 4th column instead of the 3.
+colnames(wc_forecasts_sub)[3] = "Soccer Power Index"
+glimpse(wc_forecasts_sub)
+```
+
+```{r making the forecasts subset nicer}
+wc_forecasts_sub %>% 
+  group_by(group) %>%
+  gt() %>%
+  tab_header(
+    title = md("The `Soccer Power Index`"),
+    subtitle = md("The **best** teams of the `World Cup 2022`"))
+  
+```
+
+### Matches subset
+
+```{r subsetting matches}
+wc_matches_sub = subset(wc_matches, select = c(team1, team2, spi1, spi2, adj_score1, adj_score2))
+glimpse((wc_matches_sub))
+```
+
+```{r making the matches subset nicer}
+  gt(wc_matches_sub) %>%
+    tab_header(
+      title = md("`The mathces played during the WC2022`"),
+      subtitle = md("`Adjusted scores for each team`")
+    )
+```
+
+```{r correlation between scores of teams 1}
+ggplot(wc_matches_sub, aes(spi1, adj_score1)) +
+  geom_point() +
+  geom_smooth()
+```
+
+```{r correlation coefficient 1}
+cor(wc_matches_sub$spi1, wc_matches_sub$adj_score1)
+```
+
+```{r correlation between scores of teams 2 }
+ggplot(wc_matches_sub, aes(spi2, adj_score2)) +
+  geom_point () +
+  geom_smooth ()
+```
+
+```{r correlation coefficient 2}
+cor(wc_matches_sub$spi2, wc_matches_sub$adj_score2)
+```
+
+## Conclusion:
+
+1.  After filtering and summarizing the forecasts data to include only the teams that have the Soccer Power Index greater than 82%, I noticed that all these teams were placed in either first or second within their groups, except for groups E & F.
+2.  In the matches table above, the team has higher Soccer Power Index score tends to have higher adjusted score. This doesn't show in the scatter plots above because they are showing the relationship between the spi and the adj_score for all teams while they are not grouped by high spi and low spi.
